@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from './config';
 import './App.css';
@@ -22,25 +22,12 @@ function App() {
   const [sortOrder, setSortOrder] = useState('asc');
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
-  useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-  }, [currentPage, pageSize, sortField, sortOrder, selectedCategory]);
-
-  useEffect(() => {
-    if (searchQuery) {
-      handleSearch();
-    } else {
-      fetchProducts();
-    }
-  }, [searchQuery]);
-
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ show: true, message, type });
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
-  };
+  }, []);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
       const params = {
@@ -63,18 +50,18 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, pageSize, sortField, sortOrder, selectedCategory, showToast]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/products/categories/list`);
       setCategories(response.data);
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
-  };
+  }, []);
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
       fetchProducts();
       return;
@@ -90,7 +77,20 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, fetchProducts, showToast]);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, [fetchProducts, fetchCategories]);
+
+  useEffect(() => {
+    if (searchQuery) {
+      handleSearch();
+    } else {
+      fetchProducts();
+    }
+  }, [searchQuery, handleSearch, fetchProducts]);
 
   const handleEdit = (product) => {
     setEditingId(product.id);

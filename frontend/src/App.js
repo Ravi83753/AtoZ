@@ -171,12 +171,18 @@ function App() {
 
       try {
         setLoading(true);
+        console.log('Starting CSV import...');
+        console.log('API URL:', `${API_BASE_URL}/products/import`);
+        console.log('File:', file.name, file.size, 'bytes');
+        
         const response = await axios.post(`${API_BASE_URL}/products/import`, formData, {
           headers: { 
             'Content-Type': 'multipart/form-data'
           },
           timeout: 30000 // 30 second timeout
         });
+        
+        console.log('Import response:', response.data);
         const { added, skipped, duplicates } = response.data;
         let message = `Import completed: ${added} product(s) added`;
         if (skipped > 0) message += `, ${skipped} skipped`;
@@ -186,9 +192,30 @@ function App() {
         showToast(message, 'success');
         fetchProducts();
       } catch (error) {
-        console.error('Import error:', error);
-        const errorMessage = error.response?.data?.error || error.message || 'Failed to import CSV file';
-        showToast('Error importing products: ' + errorMessage, 'error');
+        console.error('Import error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          code: error.code,
+          config: {
+            url: error.config?.url,
+            method: error.config?.method
+          }
+        });
+        
+        let errorMessage = 'Failed to import CSV file';
+        
+        if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
+          errorMessage = 'Cannot connect to server. Make sure backend is running on ' + API_BASE_URL.replace('/api', '');
+        } else if (error.code === 'ERR_NETWORK') {
+          errorMessage = 'Network error. Check if backend is running and accessible.';
+        } else if (error.response) {
+          errorMessage = error.response.data?.error || `Server error: ${error.response.status}`;
+        } else {
+          errorMessage = error.message || 'Unknown error occurred';
+        }
+        
+        showToast('Error: ' + errorMessage, 'error');
       } finally {
         setLoading(false);
       }

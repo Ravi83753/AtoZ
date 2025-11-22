@@ -1,0 +1,12 @@
+name,unit,category,brand,stock,status,image
+Laptop,pieces,Electronics,Dell,50,Active,https://example.com/laptop.jpg
+Mouse,pieces,Electronics,Logitech,100,Active,https://example.com/mouse.jpg
+Keyboard,pieces,Electronics,Logitech,75,Active,https://example.com/keyboard.jpg
+Monitor,pieces,Electronics,Samsung,30,Active,https://example.com/monitor.jpg
+Headphones,pieces,Electronics,Sony,60,Active,https://example.com/headphones.jpg
+Tablet,pieces,Electronics,Apple,25,Active,https://example.com/tablet.jpg
+Smartphone,pieces,Electronics,Samsung,80,Active,https://example.com/smartphone.jpg
+Charger,pieces,Electronics,Generic,150,Active,https://example.com/charger.jpg
+USB Cable,pieces,Electronics,Generic,200,Active,https://example.com/usb.jpg
+Webcam,pieces,Electronics,Logitech,40,Active,https://example.com/webcam.jpg
+

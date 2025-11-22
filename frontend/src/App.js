@@ -160,23 +160,37 @@ function App() {
       const file = e.target.files[0];
       if (!file) return;
 
+      // Validate file type
+      if (!file.name.endsWith('.csv')) {
+        showToast('Please select a CSV file', 'error');
+        return;
+      }
+
       const formData = new FormData();
       formData.append('csvFile', file);
 
       try {
+        setLoading(true);
         const response = await axios.post(`${API_BASE_URL}/products/import`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 30000 // 30 second timeout
         });
         const { added, skipped, duplicates } = response.data;
-        let message = `Import completed: ${added} added`;
+        let message = `Import completed: ${added} product(s) added`;
         if (skipped > 0) message += `, ${skipped} skipped`;
         if (duplicates && duplicates.length > 0) {
-          message += `, ${duplicates.length} duplicates found`;
+          message += `, ${duplicates.length} duplicate(s) found`;
         }
-        showToast(message);
+        showToast(message, 'success');
         fetchProducts();
       } catch (error) {
-        showToast('Error importing products: ' + (error.response?.data?.error || error.message), 'error');
+        console.error('Import error:', error);
+        const errorMessage = error.response?.data?.error || error.message || 'Failed to import CSV file';
+        showToast('Error importing products: ' + errorMessage, 'error');
+      } finally {
+        setLoading(false);
       }
     };
     input.click();

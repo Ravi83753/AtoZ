@@ -7,14 +7,19 @@ const path = require('path');
 const { body, validationResult } = require('express-validator');
 const db = require('../db');
 
-// Configure multer for file uploads
-const upload = multer({ dest: 'uploads/' });
-
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
+
+// Configure multer for file uploads with absolute path
+const upload = multer({ 
+  dest: uploadsDir,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
+  }
+});
 
 // GET /api/products - Get all products with optional pagination and sorting
 router.get('/', (req, res) => {
@@ -327,7 +332,13 @@ router.get('/export', (req, res) => {
 // POST /api/products/import - Import products from CSV
 router.post('/import', upload.single('csvFile'), (req, res) => {
   if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded' });
+    return res.status(400).json({ error: 'No file uploaded. Please select a CSV file.' });
+  }
+
+  // Validate file type
+  if (!req.file.originalname.endsWith('.csv')) {
+    fs.unlinkSync(req.file.path);
+    return res.status(400).json({ error: 'Invalid file type. Please upload a CSV file.' });
   }
 
   const results = {
